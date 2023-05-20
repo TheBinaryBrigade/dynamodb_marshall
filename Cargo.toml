@@ -1,0 +1,13 @@
+[package]
+name = "dynamodb_marshall"
+version = "0.0.1+dynamodb-0.27.0"
+description = "Serialize and deserialize AttributeValue to Value"
+edition = "2021"
+keywords = ["unmarshall", "marshall", "marshalling", "marshaling", "typeserializer", "typedeserializer", "serialize", "deserialize", "serde", "dynamodb"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aws-sdk-dynamodb = "0.27.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
