@@ -3,7 +3,8 @@ name = "dynamodb_marshall"
 version = "0.0.1+dynamodb-0.27.0"
 description = "Serialize and deserialize AttributeValue to Value"
 edition = "2021"
-keywords = ["unmarshall", "marshall", "marshalling", "marshaling", "typeserializer", "typedeserializer", "serialize", "deserialize", "serde", "dynamodb"]
+keywords = ["unmarshall", "marshall", "typeserializer", "typedeserializer", "dynamodb"]
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
