@@ -4,6 +4,8 @@ version = "0.29.0"
 description = "Serialize and deserialize AttributeValue to Value"
 edition = "2021"
 keywords = ["unmarshall", "marshall", "typeserializer", "typedeserializer", "dynamodb"]
+homepage = "https://github.com/TheBinaryBrigade/dynamodb_marshall"
+repository = "https://github.com/TheBinaryBrigade/dynamodb_marshall"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
