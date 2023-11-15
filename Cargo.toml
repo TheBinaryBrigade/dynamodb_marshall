@@ -1,6 +1,6 @@
 [package]
 name = "dynamodb_marshall"
-version = "0.35.0"
+version = "0.36.0"
 description = "Serialize and deserialize AttributeValue to Value"
 edition = "2021"
 keywords = ["unmarshall", "marshall", "typeserializer", "typedeserializer", "dynamodb"]
