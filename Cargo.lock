@@ -358,7 +358,7 @@ dependencies = [
 
 [[package]]
 name = "dynamodb_marshall"
-version = "1.18.0"
+version = "1.19.0"
 dependencies = [
  "aws-sdk-dynamodb",
  "serde",
