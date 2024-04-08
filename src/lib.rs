@@ -1,11 +1,13 @@
 #![doc = include_str!("../README.md")]
+
 pub mod dynamodb {
-    use aws_sdk_dynamodb::types::AttributeValue;
-    use serde::{Serialize};
-    use serde::de::DeserializeOwned;
-    use serde_json::{Map, Number, Value};
     use std::collections::HashMap;
     use std::error::Error;
+
+    use aws_sdk_dynamodb::types::AttributeValue;
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
+    use serde_json::{Map, Number, Value};
 
     pub fn marshall_t<T: Serialize>(m: &T) -> Result<AttributeValue, Box<dyn Error>> {
         let m = serde_json::to_value(m)?;
@@ -22,17 +24,12 @@ pub mod dynamodb {
             Value::Null => AttributeValue::Null(true),
             Value::Bool(b) => AttributeValue::Bool(*b),
             Value::Number(n) => AttributeValue::N(n.to_string()),
-            Value::String(s) => AttributeValue::S(s.clone()),
-            Value::Array(arr) => {
-                let result = arr.iter();
-                AttributeValue::L(result.map(marshall).collect())
-            },
+            Value::String(s) => AttributeValue::S(s.to_owned()),
+            Value::Array(arr) => AttributeValue::L(arr.iter().map(marshall).collect()),
             Value::Object(o) => {
                 let new_map = o
-                    .clone()
-                    .into_iter()
-                    // .par_bridge()
-                    .map(|(k, v)| (k, marshall(&v)))
+                    .iter()
+                    .map(|(k, v)| (k.to_owned(), marshall(v)))
                     .collect::<HashMap<String, AttributeValue>>();
 
                 AttributeValue::M(new_map)
@@ -43,74 +40,60 @@ pub mod dynamodb {
     pub fn unmarshall(m: &AttributeValue) -> Value {
         match m {
             AttributeValue::S(s) => Value::String(s.to_owned()),
-            AttributeValue::B(blob) => {
-                Value::Array(
-                    blob
-                        .clone()
-                        .into_inner()
-                        .into_iter()
-                        .map(|v| Value::Number(Number::from(v)))
-                        .collect::<Vec<Value>>(),
-                )
-            },
+            AttributeValue::B(blob) => Value::Array(
+                blob.clone()
+                    .into_inner()
+                    .iter()
+                    .map(|v| Value::Number(Number::from(*v)))
+                    .collect::<Vec<Value>>(),
+            ),
             AttributeValue::Bool(b) => Value::Bool(*b),
             AttributeValue::M(o) => {
                 let new_map: Map<String, Value> = o
-                    .clone()
-                    .into_iter()
-                    .map(|(k, v)| (k, unmarshall(&v)))
+                    .iter()
+                    .map(|(k, v)| (k.to_owned(), unmarshall(v)))
                     .collect();
                 Value::Object(new_map)
             }
             AttributeValue::N(v) => {
                 if v.contains('.') {
-                    match v.parse::<f64>() {
-                        Ok(v) => {
-                            serde_json::json!(v)
-                        }
-                        Err(err) => {
-                            eprintln!("Problem when parsing float: {err:?}");
-                            Value::Null
-                        }
-                    }
+                    v.parse::<f64>()
+                        .map_or_else(|_| Value::Null, |v| serde_json::json!(v))
                 } else {
-                    match v.parse::<i64>() {
-                        Ok(v) => {
-                            serde_json::json!(v)
-                        }
-                        Err(err) => {
-                            eprintln!("Problem when parsing int: {err:?}");
-                            Value::Null
-                        }
-                    }
+                    v.parse::<i64>()
+                        .map_or_else(|_| Value::Null, |v| serde_json::json!(v))
                 }
             }
-            AttributeValue::L(arr) => arr.iter().map(unmarshall).collect(),
-            AttributeValue::Ns(arr) => arr
-                .iter()
-                .map(|v| unmarshall(&AttributeValue::N(v.to_string())))
-                .collect(),
-            AttributeValue::Bs(arr) => arr
-                .iter()
-                .map(|v| unmarshall(&AttributeValue::B(v.to_owned())))
-                .collect(),
-            AttributeValue::Ss(arr) => arr
-                .iter()
-                .cloned()
-                .map(Value::String)
-                .collect(),
-            AttributeValue::Null(_) => Value::Null,
-            _ => Value::Null,
+            AttributeValue::L(arr) => {
+                Value::Array(arr.iter().map(unmarshall).collect::<Vec<Value>>())
+            }
+            AttributeValue::Ns(arr) => Value::Array(
+                arr.iter()
+                    .map(|v| unmarshall(&AttributeValue::N(v.to_string())))
+                    .collect::<Vec<Value>>(),
+            ),
+            AttributeValue::Bs(arr) => Value::Array(
+                arr.iter()
+                    .map(|v| unmarshall(&AttributeValue::B(v.to_owned())))
+                    .collect::<Vec<Value>>(),
+            ),
+            AttributeValue::Ss(arr) => Value::Array(
+                arr.iter()
+                    .map(|s| Value::String(s.to_owned()))
+                    .collect::<Vec<Value>>(),
+            ),
+            _ => Value::Null, // covers AttributeValue::Null(_) too
         }
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::dynamodb;
-    use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
+
+    use serde::{Deserialize, Serialize};
+
+    use crate::dynamodb;
 
     #[derive(Debug, Serialize, Deserialize, Default, Eq, PartialEq, Clone)]
     struct Example {
@@ -216,6 +199,5 @@ mod tests {
 
         // Check if they are equal
         assert_eq!(result.to_string(), example_cloned);
-
     }
 }
