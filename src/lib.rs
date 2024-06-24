@@ -58,10 +58,10 @@ pub mod dynamodb {
             AttributeValue::N(v) => {
                 if v.contains('.') {
                     v.parse::<f64>()
-                        .map_or_else(|_| Value::Null, |v| serde_json::json!(v))
+                        .map_or_else(|_| serde_json::json!(v), |v| serde_json::json!(v))
                 } else {
                     v.parse::<i64>()
-                        .map_or_else(|_| Value::Null, |v| serde_json::json!(v))
+                        .map_or_else(|_| serde_json::json!(v), |v| serde_json::json!(v))
                 }
             }
             AttributeValue::L(arr) => {
