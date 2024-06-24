@@ -41,7 +41,8 @@ pub mod dynamodb {
         match m {
             AttributeValue::S(s) => Value::String(s.to_owned()),
             AttributeValue::B(blob) => Value::Array(
-                blob.clone()
+                blob
+                    .clone()
                     .into_inner()
                     .iter()
                     .map(|v| Value::Number(Number::from(*v)))
@@ -58,10 +59,10 @@ pub mod dynamodb {
             AttributeValue::N(v) => {
                 if v.contains('.') {
                     v.parse::<f64>()
-                        .map_or_else(|_| serde_json::json!(v), |v| serde_json::json!(v))
+                        .map_or_else(|_| serde_json::json!(v), |parsed_float| serde_json::json!(parsed_float))
                 } else {
                     v.parse::<i64>()
-                        .map_or_else(|_| serde_json::json!(v), |v| serde_json::json!(v))
+                        .map_or_else(|_| serde_json::json!(v), |parsed_int| serde_json::json!(parsed_int))
                 }
             }
             AttributeValue::L(arr) => {
