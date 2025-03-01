@@ -2,7 +2,7 @@
 name = "dynamodb_marshall"
 version = "1.66.0"
 description = "Serialize and deserialize AttributeValue to Value"
-edition = "2021"
+edition = "2024"
 keywords = ["unmarshall", "marshall", "typeserializer", "typedeserializer", "dynamodb"]
 homepage = "https://github.com/TheBinaryBrigade/dynamodb_marshall"
 repository = "https://github.com/TheBinaryBrigade/dynamodb_marshall"
