@@ -1,6 +1,11 @@
 # DynamoDB Type Serializer/Deserializer
 
 
+> **NOTE: Handling DynamoDB Sets**
+> 
+> DynamoDB has a distinct concept of sets (`Ss`, `Ns`, `Bs`), whereas JSON does not. By default, the marshalling and unmarshalling in this library treats all JSON arrays as DynamoDB lists (`AttributeValue::L`). Consequently, even if you start with a DynamoDB string set (`Ss`), once it’s converted to JSON and then back again, it will become a list of strings (`L`).
+
+
 ## Simple Example for `Value` -> `AttributeValue`
 ```rust
 use aws_sdk_dynamodb::types::AttributeValue;
