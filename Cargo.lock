@@ -100,9 +100,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-dynamodb"
-version = "1.69.0"
+version = "1.71.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c42f454f50a050aaa3f3d200a3ac072e48c18c4bb5356c38be7eee1da1439a43"
+checksum = "e04d98940e69f94525e47f5dda2e28919b81c229a8d25c941be31104c6a4afa8"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
@@ -178,9 +178,9 @@ dependencies = [
 
 [[package]]
 name = "aws-smithy-http-client"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0497ef5d53065b7cd6a35e9c1654bd1fefeae5c52900d91d1b188b0af0f29324"
+checksum = "8aff1159006441d02e57204bf57a1b890ba68bedb6904ffd2873c1c4c11c546b"
 dependencies = [
  "aws-smithy-async",
  "aws-smithy-runtime-api",
@@ -509,7 +509,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "dynamodb_marshall"
-version = "1.69.0"
+version = "1.71.0"
 dependencies = [
  "aws-sdk-dynamodb",
  "serde",
@@ -1021,9 +1021,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.21.1"
+version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
+checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "openssl-probe"
