@@ -99,9 +99,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-dynamodb"
-version = "1.75.0"
+version = "1.76.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8b430cce50bf8a12bd77873581e9b05aaa351df3b435b8dd28319ecc71db494"
+checksum = "e2f2fbca361817042860066650943134204a13faf857797d17391275ed1c4c0a"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
@@ -503,7 +503,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "dynamodb_marshall"
-version = "1.75.0"
+version = "1.76.0"
 dependencies = [
  "aws-sdk-dynamodb",
  "serde",
@@ -859,9 +859,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497bbc33a26fdd4af9ed9c70d63f61cf56a938375fbb32df34db9b1cd6d643f2"
+checksum = "cf9f1e950e0d9d1d3c47184416723cf29c0d1f93bd8cccf37e4beb6b44f31710"
 dependencies = [
  "bytes",
  "futures-channel",
