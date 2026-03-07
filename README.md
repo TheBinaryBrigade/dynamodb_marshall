@@ -2,8 +2,16 @@
 
 
 > **NOTE: Handling DynamoDB Sets**
-> 
+>
 > DynamoDB has a distinct concept of sets (`Ss`, `Ns`, `Bs`), whereas JSON does not. By default, the marshalling and unmarshalling in this library treats all JSON arrays as DynamoDB lists (`AttributeValue::L`). Consequently, even if you start with a DynamoDB string set (`Ss`), once it’s converted to JSON and then back again, it will become a list of strings (`L`).
+
+> **NOTE: Large Numbers**
+>
+> DynamoDB’s `N` type supports arbitrary-precision decimals, but JSON does not. During `unmarshall`, numbers are parsed as `i64` first, then `f64`. Values outside both ranges (e.g. numbers with more than ~15 significant digits) fall back to a JSON string. On re-marshalling that string becomes `AttributeValue::S`, not `AttributeValue::N`. If you need to preserve large or high-precision numbers, store them as strings in DynamoDB.
+
+> **NOTE: Binary Data (`B` / `Bs`)**
+>
+> `AttributeValue::B` has no direct JSON equivalent. This library unmarshals binary blobs as a JSON array of byte values (`[1, 2, 3, ...]`). Re-marshalling that array produces `AttributeValue::L` (a list), not `AttributeValue::B`, so the roundtrip is lossy. `Vec<u8>` fields on Rust structs are serialized by serde_json as a number array and follow the same path; they are never stored as `AttributeValue::B`.
 
 
 ## Simple Example for `Value` -> `AttributeValue`
