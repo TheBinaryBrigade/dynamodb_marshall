@@ -2,14 +2,13 @@
 
 pub mod dynamodb {
     use std::collections::HashMap;
-    use std::error::Error;
 
     use aws_sdk_dynamodb::types::AttributeValue;
     use serde::Serialize;
     use serde::de::DeserializeOwned;
     use serde_json::{Map, Number, Value};
 
-    pub fn marshall_t<T: Serialize>(m: &T) -> Result<AttributeValue, Box<dyn Error>> {
+    pub fn marshall_t<T: Serialize>(m: &T) -> Result<AttributeValue, serde_json::Error> {
         let m = serde_json::to_value(m)?;
         Ok(marshall(&m))
     }
@@ -56,16 +55,15 @@ pub mod dynamodb {
                 Value::Object(new_map)
             }
             AttributeValue::N(v) => {
-                if v.contains('.') {
-                    v.parse::<f64>().map_or_else(
-                        |_| serde_json::json!(v),
-                        |parsed_float| serde_json::json!(parsed_float),
-                    )
+                // Try integer first, then finite float (handles scientific notation like "1e10").
+                // Non-finite results (overflow to ±Inf) fall back to string, since JSON has
+                // no representation for infinity and serde_json would silently emit null.
+                if let Ok(i) = v.parse::<i64>() {
+                    serde_json::json!(i)
+                } else if let Some(f) = v.parse::<f64>().ok().filter(|f| f.is_finite()) {
+                    serde_json::json!(f)
                 } else {
-                    v.parse::<i64>().map_or_else(
-                        |_| serde_json::json!(v),
-                        |parsed_int| serde_json::json!(parsed_int),
-                    )
+                    serde_json::json!(v)
                 }
             }
             AttributeValue::L(arr) => {
@@ -86,7 +84,9 @@ pub mod dynamodb {
                     .map(|s| Value::String(s.to_owned()))
                     .collect::<Vec<Value>>(),
             ),
-            _ => Value::Null, // covers AttributeValue::Null(_) too
+            AttributeValue::Null(_) => Value::Null,
+            // Unknown/future AttributeValue variants are treated as null.
+            _ => Value::Null,
         }
     }
 }
@@ -195,7 +195,6 @@ mod tests {
         let example_cloned = serde_json::to_value(&example)
             .expect("Failed to de example")
             .to_string();
-        // println!(">> {example_cloned}");
 
         // Serialize example to AttributeValue
         let attr = dynamodb::marshall_t(&example).unwrap();
@@ -383,6 +382,19 @@ mod tests {
     }
 
     #[test]
+    fn test_scientific_notation_numbers() {
+        // Scientific notation has no '.', so the old dot-check would try i64 and fail,
+        // falling back to a string. The fixed parser tries f64 before giving up.
+        let input = AttributeValue::N("1e10".to_string());
+        let json_val = dynamodb::unmarshall(&input);
+        assert_eq!(json_val, JsonValue::Number(serde_json::Number::from_f64(1e10).unwrap()));
+
+        let input_neg = AttributeValue::N("-2.5e3".to_string());
+        let json_val_neg = dynamodb::unmarshall(&input_neg);
+        assert_eq!(json_val_neg, JsonValue::Number(serde_json::Number::from_f64(-2500.0).unwrap()));
+    }
+
+    #[test]
     fn test_unparseable_numbers() {
         let input = AttributeValue::N("123abc".to_string());
 
@@ -399,20 +411,24 @@ mod tests {
 
     #[test]
     fn test_out_of_range_integers() {
-        // This number is larger than i64::MAX
+        // Larger than i64::MAX but representable as f64 (with precision loss — rounds to 1e21).
         let input = AttributeValue::N("999999999999999999999".to_string());
-
         let json_val = dynamodb::unmarshall(&input);
-        // Fallback is string in JSON since it can't parse into i64/f64
         assert_eq!(
             json_val,
-            JsonValue::String("999999999999999999999".to_string())
+            JsonValue::Number(serde_json::Number::from_f64(999999999999999999999_f64).unwrap())
         );
-
-        // Round-trip
+        // On re-marshall the f64 becomes N, not S.
         let rem = dynamodb::marshall(&json_val);
-        // Should become S("999999999999999999999") on re-marshall
-        assert_eq!(rem, AttributeValue::S("999999999999999999999".to_string()));
+        assert!(matches!(rem, AttributeValue::N(_)));
+
+        // A value that overflows f64 (exponent too large) falls back to a string.
+        let huge = AttributeValue::N("1e99999999".to_string());
+        let json_huge = dynamodb::unmarshall(&huge);
+        assert_eq!(json_huge, JsonValue::String("1e99999999".to_string()));
+        // Re-marshall of the string fallback produces S, not N.
+        let rem_huge = dynamodb::marshall(&json_huge);
+        assert_eq!(rem_huge, AttributeValue::S("1e99999999".to_string()));
     }
 
     #[test]
